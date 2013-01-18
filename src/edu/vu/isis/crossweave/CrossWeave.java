@@ -195,6 +195,13 @@ public class CrossWeave {
         out.println();
     }
 
+
+    /**
+     * @param instanceMap
+     * @param out
+     */
+    private static final String PRINT_STATS_TEMPLATE = "Summary of pattern structure: " +
+            "<pat:{x | Pattern: <pat.fullyQualifiedName> (alias <alias>)";
     public static void printStats(Map<String, PatternInstance> instanceMap, PrintStream out) {
         out.println("Summary of pattern structure: ");
         for (String alias : instanceMap.keySet()) {
