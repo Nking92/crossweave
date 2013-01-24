@@ -15,11 +15,17 @@ import com.thoughtworks.qdox.model.Annotation;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaSource;
 
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.PrintStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,8 +33,9 @@ import java.util.Map;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-public class CrossWeave {
+public class CrossWeave extends AbstractMojo {
 
+    // TODO: Use maven plugin loggers
     private static final Logger LOGGER = LoggerFactory.getLogger(CrossWeave.class);
 
     /**
@@ -40,36 +47,66 @@ public class CrossWeave {
      * Fully qualified name of the design pattern role annotation
      */
     public static final String PATTERN_ROLE_ANN_FQN = "edu.vu.isis.ammo.annotation.DesignPattern$Role";
-
+    
     /**
-     * Print stream to send output to
+     * The Java sources to parse.
      */
-    private static final PrintStream OUTPUT_STREAM = System.out;
-
-    public static void main(String[] args) throws Exception {
-        long start = System.nanoTime();
-        if (args.length != 2) {
-            usage();
-            return;
-        }
-
-        String xmlFilename = args[0];
-        SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
+    @Parameter(property="source", defaultValue="${project.build.sourceDirectory}")
+    private File mSrc;
+    
+    /**
+     * The file containing the StringTemplate template
+     */
+    @Parameter(property="template", defaultValue="") 
+    // TODO: We want to be able to supply a default template file,
+    // but where should we put it, and how do we refer to it?
+    private File mStrTemplate;
+    
+    /**
+     * The directory for the output file
+     */
+    @Parameter(property="outputDir", defaultValue="${project.build.directory}")
+    private File mOutputDir;
+    
+    /**
+     * Name of file to write output to
+     */
+    @Parameter(property="outputFile", defaultValue="PatternStructure")
+    private String mOutputFilename;
+    
+    /**
+     * The file containing the design pattern definitions
+     */
+    @Parameter(property="patternDef", required=true)
+    private File mPatternDef;
+    
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
         Map<String, Pattern> patternMap = new HashMap<String, Pattern>();
-
-        parser.parse(new File(xmlFilename), new PatternDefHandler(patternMap));
+        
+        try {
+            SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
+            parser.parse(mPatternDef, new PatternDefHandler(patternMap));
+        } catch (Exception e) {
+            throw new MojoExecutionException("Could not parse pattern definition file", e);
+        }
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Keys in patternMap: {}", patternMap.keySet().toString());
         }
 
-        String javaFilename = args[1];
-        LOGGER.trace("Java file name: {}", javaFilename);
         JavaDocBuilder builder = new JavaDocBuilder();
-        if (javaFilename.endsWith(".java")) {
-            builder.addSource(new File(javaFilename));
-        } else {
-            builder.addSourceTree(new File(javaFilename));
+        
+        try {
+            if (mSrc.getName().endsWith(".java")) {
+                builder.addSource(mSrc);
+            } else {
+                builder.addSourceTree(mSrc);
+            }
+        } catch (FileNotFoundException e) {
+            throw new MojoExecutionException("Could not find file: " + mSrc, e);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Could not read sources", e);
         }
 
         JavaSource[] sources = builder.getSources();
@@ -82,17 +119,29 @@ public class CrossWeave {
 
         scanRoles(sources, instanceMap);
 
-        reportPatternErrors(instanceMap, OUTPUT_STREAM);
-        printStats(instanceMap, OUTPUT_STREAM);
-
-        long end = System.nanoTime();
-        LOGGER.trace("Execution time: " + (end - start) + "ns (" + (end - start) / 1000000 + "ms)");
-    }
-
-    public static void usage() {
-        System.out.println("Usage:");
-        System.out.println("CrossWeave [pattern definition file] " +
-                "[java source file/directory]");
+        
+        if(!mOutputDir.exists()) {
+            mOutputDir.mkdirs();
+        }
+        
+        FileWriter fw = null;
+        try {
+            File outputFile = new File(mOutputDir, mOutputFilename);
+            fw = new FileWriter(outputFile);
+            
+            reportPatternErrors(instanceMap, fw);
+            printStats(instanceMap, fw);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to write output", e);
+        } finally {
+            if(fw != null) {
+                try {
+                    fw.close();
+                } catch (IOException e) {
+                    // Ignore
+                }
+            }
+        }
     }
 
     public static void scanPatternSpecs(JavaSource[] sources, Map<String, Pattern> patternMap,
@@ -168,16 +217,16 @@ public class CrossWeave {
         }
     }
 
-    public static void reportPatternErrors(Map<String, PatternInstance> instanceMap, PrintStream out) {
+    public static void reportPatternErrors(Map<String, PatternInstance> instanceMap, FileWriter out) throws IOException {
         boolean errorFound = false;
         for (String alias : instanceMap.keySet()) {
             PatternInstance pat = instanceMap.get(alias);
             if (pat.hasEmptyRoles()) {
                 errorFound = true;
                 String fullyQualifiedName = pat.getFullyQualifiedName();
-                out.println("Pattern " + fullyQualifiedName + " has empty roles:");
+                out.write("Pattern " + fullyQualifiedName + " has empty roles:");
                 for (Role role : pat.getEmptyRoles()) {
-                    out.println("\t" + role.getName());
+                    out.write("\t" + role.getName());
                 }
             } else if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("PatternInstance {} has all roles filled", pat.getFullyQualifiedName());
@@ -189,36 +238,36 @@ public class CrossWeave {
         }
 
         if (!errorFound) {
-            out.println("No pattern errors found");
+            out.write("No pattern errors found");
         }
 
-        out.println();
+        out.write('\n');
     }
 
 
     /**
      * @param instanceMap
      * @param out
+     * @throws IOException 
      */
-    private static final String PRINT_STATS_TEMPLATE = "Summary of pattern structure: " +
-            "<pat:{x | Pattern: <pat.fullyQualifiedName> (alias <alias>)";
-    public static void printStats(Map<String, PatternInstance> instanceMap, PrintStream out) {
-        out.println("Summary of pattern structure: ");
+    public static void printStats(Map<String, PatternInstance> instanceMap, FileWriter out/*, STGroup template*/) throws IOException {
+        //template.
+        out.write("Summary of pattern structure: ");
         for (String alias : instanceMap.keySet()) {
             PatternInstance pat = instanceMap.get(alias);
-            out.println("Pattern: " + pat.getFullyQualifiedName() + " (alias " + alias + ")");
+            out.write("Pattern: " + pat.getFullyQualifiedName() + " (alias " + alias + ")");
             Collection<Role> roles = pat.getRoles();
             for (Role role : roles) {
-                out.println("\tRole: " + role.getName());
+                out.write("\tRole: " + role.getName());
                 if (role.hasNoImplementers()) {
-                    out.println("\t\tNo implementers");
+                    out.write("\t\tNo implementers");
                 } else {
                     for (String implementer : role.getImplementers()) {
-                        out.println("\t\tImplementer: " + implementer);
+                        out.write("\t\tImplementer: " + implementer);
                     }
                 }
             }
-            out.println();
+            out.write('\n');
         }
     }
 
@@ -237,4 +286,6 @@ public class CrossWeave {
             return trimQuotes(param);
         }
     }
+
+    
 }

@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" output="target/classes" path="src">
-		<attributes>
-			<attribute name="optional" value="true"/>
-			<attribute name="maven.pomderived" value="true"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="src" path="config"/>
+	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="lib" path="libs/qdox-2.0-20100906.201255-1.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:platform:/resource/CrossWeave/libs/qdox-2.0-20100906.201255-1-javadoc.jar!/"/>

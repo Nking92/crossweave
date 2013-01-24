@@ -1,0 +1,4 @@
+printStatsTemplate(pat) ::= <<
+Summary of pattern structure: 
+<pat:{alias | Pattern: <alias.fullyQualifiedName> (alias <alias>)
+>>
