@@ -10,9 +10,6 @@ purpose whatsoever, and to have or authorize others to do so.
  */
 package edu.vu.isis.crossweave;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -26,9 +23,7 @@ import java.util.Collection;
  * @author nick
  */
 public class PatternInstance {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PatternInstance.class);
-
+    
     private Pattern mPattern;
     private String mInstanceName;
     private Collection<Role> mRoles;

@@ -1,0 +1,7 @@
+<pattern name="adapter" namespace="hf">
+  <impl name="foo" />
+  <impl name="bar" />
+  <role name="client" />
+  <role name="adapter" />
+  <role name="adaptee" />
+</pattern>

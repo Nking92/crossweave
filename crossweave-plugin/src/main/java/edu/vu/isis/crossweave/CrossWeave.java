@@ -21,6 +21,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.impl.StaticLoggerBinder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,12 +42,12 @@ public class CrossWeave extends AbstractMojo {
     /**
      * Fully qualified name of the design pattern specification annotation
      */
-    public static final String PATTERN_SPEC_ANN_FQN = "edu.vu.isis.ammo.annotation.DesignPattern$Specification";
+    public static final String PATTERN_SPEC_ANN_FQN = "edu.vu.isis.crossweave.annotation.DesignPattern$Specification";
 
     /**
      * Fully qualified name of the design pattern role annotation
      */
-    public static final String PATTERN_ROLE_ANN_FQN = "edu.vu.isis.ammo.annotation.DesignPattern$Role";
+    public static final String PATTERN_ROLE_ANN_FQN = "edu.vu.isis.crossweave.annotation.DesignPattern$Role";
     
     /**
      * The Java sources to parse.
@@ -82,6 +83,7 @@ public class CrossWeave extends AbstractMojo {
     
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        StaticLoggerBinder.getSingleton().setLog(getLog());
         Map<String, Pattern> patternMap = new HashMap<String, Pattern>();
         
         try {

@@ -1,4 +1,4 @@
-package edu.vu.isis.ammo.annotation;
+package edu.vu.isis.crossweave.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -58,6 +58,10 @@ public @interface DesignPattern {
         String impl() default "";
     }
     
+    public @interface Specifications {
+        DesignPattern.Specification[] specs();
+    }
+
     public @interface Role {
         /** the context specific name */
         String alias();
@@ -70,6 +74,10 @@ public @interface DesignPattern {
         
         /** how is the detail encoded */
         String detailType() default "text/html";
+    }
+
+    public @interface Roles {
+        DesignPattern.Role[] roles();
     }
     
 }
