@@ -2,7 +2,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>edu.vu.isis</groupId>
+  <groupId>edu.vu.isis.crossweave</groupId>
   <artifactId>crossweave-examples</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
@@ -20,4 +20,30 @@
       <version>1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>edu.vu.isis.crossweave</groupId>
+        <artifactId>crossweave</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <configuration>
+          <!-- Parameters for the plugin -->
+          <source>${basedir}</source>
+          <!-- <template></template> -->
+          <outputDir>${basedir}/src/test/resources/output</outputDir>
+          <patternDef>${basedir}/patterndef.xml</patternDef>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>analyze</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>

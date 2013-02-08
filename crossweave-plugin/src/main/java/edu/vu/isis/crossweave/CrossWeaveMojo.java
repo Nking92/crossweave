@@ -18,6 +18,8 @@ import com.thoughtworks.qdox.model.JavaSource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +36,18 @@ import java.util.Map;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-public class CrossWeave extends AbstractMojo {
+/**
+ * Analyzes project source code and writes a pattern description file for the
+ * patterns present in the code.
+ * 
+ * @goal analyze
+ * @author nick
+ *
+ */
+public class CrossWeaveMojo extends AbstractMojo {
 
     // TODO: Use maven plugin loggers
-    private static final Logger LOGGER = LoggerFactory.getLogger(CrossWeave.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CrossWeaveMojo.class);
 
     /**
      * Fully qualified name of the design pattern specification annotation
@@ -51,9 +61,10 @@ public class CrossWeave extends AbstractMojo {
     
     /**
      * The Java sources to parse.
+     * @parameter default-value="${projec.build.sourceDirectory}"
      */
     @Parameter(property="source", defaultValue="${project.build.sourceDirectory}")
-    private File mSrc;
+    private File source;
     
     /**
      * The file containing the StringTemplate template
@@ -100,13 +111,13 @@ public class CrossWeave extends AbstractMojo {
         JavaDocBuilder builder = new JavaDocBuilder();
         
         try {
-            if (mSrc.getName().endsWith(".java")) {
-                builder.addSource(mSrc);
+            if (source.getName().endsWith(".java")) {
+                builder.addSource(source);
             } else {
-                builder.addSourceTree(mSrc);
+                builder.addSourceTree(source);
             }
         } catch (FileNotFoundException e) {
-            throw new MojoExecutionException("Could not find file: " + mSrc, e);
+            throw new MojoExecutionException("Could not find file: " + source, e);
         } catch (IOException e) {
             throw new MojoExecutionException("Could not read sources", e);
         }
