@@ -11,8 +11,8 @@ import edu.vu.isis.crossweave.example.pet.PetDog;
 
 @DesignPattern.Specifications(specs =
 {
-    @DesignPattern.Specification(alias = "dog", instanceName = "snoopy", namespace = "gof", patternName = "adapter"),
-    @DesignPattern.Specification(alias = "cat", instanceName = "tom", namespace = "gof", patternName = "adapter")
+    @DesignPattern.Specification(alias = "dog", instanceName = "snoopy", namespace = "gof", patternName = "adapter", impl="foo"),
+    @DesignPattern.Specification(alias = "cat", instanceName = "tom", namespace = "gof", patternName = "adapter", impl="bar")
 })
 @DesignPattern.Roles(roles =
 {

@@ -1,4 +1,4 @@
-<pattern name="adapter" namespace="hf">
+<pattern name="adapter" namespace="gof">
   <impl name="foo" />
   <impl name="bar" />
   <role name="client" />

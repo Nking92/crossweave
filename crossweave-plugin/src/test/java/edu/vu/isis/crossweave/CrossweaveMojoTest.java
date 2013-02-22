@@ -8,7 +8,6 @@ import java.io.File;
 
 public class CrossweaveMojoTest extends AbstractMojoTestCase {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CrossweaveMojoTest.class);
     /** {@inheritDoc} */
     @Override
     protected void setUp() throws Exception {
@@ -27,10 +26,8 @@ public class CrossweaveMojoTest extends AbstractMojoTestCase {
         File testPom = new File(getBasedir(), "src/test/resources/test-run/pom.xml");
         assertNotNull(testPom);
         assertTrue(testPom.exists());
-        LOGGER.error("found pom");
         
         CrossWeaveMojo mojo = (CrossWeaveMojo) lookupMojo("analyze", testPom);
-        LOGGER.error("looked up mojo");
         assertNotNull(mojo);
         mojo.execute();
         
