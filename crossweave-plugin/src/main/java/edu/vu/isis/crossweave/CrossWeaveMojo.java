@@ -20,6 +20,9 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.STGroupFile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,22 +48,26 @@ public class CrossWeaveMojo extends AbstractMojo {
     private static Log logger;
 
     /**
-     * Fully qualified name of the design pattern specification annotation (multiple version)
+     * Fully qualified name of the design pattern specification annotation
+     * (multiple version)
      */
     public static final String PATTERN_SPECS_ANN_FQN = "edu.vu.isis.crossweave.annotation.DesignPattern$Specifications";
 
     /**
-     * Fully qualified name of the design pattern specification annotation (single version)
+     * Fully qualified name of the design pattern specification annotation
+     * (single version)
      */
     public static final String PATTERN_SPEC_ANN_FQN = "edu.vu.isis.crossweave.annotation.DesignPattern$Specification";
 
     /**
-     * Fully qualified name of the design pattern role annotation (multiple version)
+     * Fully qualified name of the design pattern role annotation (multiple
+     * version)
      */
     public static final String PATTERN_ROLES_ANN_FQN = "edu.vu.isis.crossweave.annotation.DesignPattern$Roles";
-    
+
     /**
-     * Fully qualified name of the design pattern role annotation (single version)
+     * Fully qualified name of the design pattern role annotation (single
+     * version)
      */
     public static final String PATTERN_ROLE_ANN_FQN = "edu.vu.isis.crossweave.annotation.DesignPattern$Role";
 
@@ -73,8 +80,10 @@ public class CrossWeaveMojo extends AbstractMojo {
 
     /**
      * The file containing the StringTemplate template
+     * 
+     * @required
      */
-    private File template;
+    private String template;
 
     /**
      * The directory for the output file
@@ -147,8 +156,9 @@ public class CrossWeaveMojo extends AbstractMojo {
             File file = new File(outputDir, outputFile);
             fw = new FileWriter(file);
 
-            reportPatternErrors(instanceMap, fw);
-            printStats(instanceMap, fw);
+            STGroup stg = new STGroupFile(template);
+            reportPatternErrors(instanceMap, fw, stg);
+            printStats(instanceMap, fw, stg);
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to write output", e);
         } finally {
@@ -168,11 +178,11 @@ public class CrossWeaveMojo extends AbstractMojo {
             for (JavaClass clazz : src.getClasses()) {
                 for (Annotation ann : clazz.getAnnotations()) {
                     if (ann.getType().getFullyQualifiedName().equals(PATTERN_SPECS_ANN_FQN)) {
-                       @SuppressWarnings("unchecked")
-                       List<Annotation> list = (List<Annotation>) ann.getNamedParameter("specs");
-                       for( Annotation a : list) {
-                           processSpecAnnotation(a, patternMap, instanceMap);
-                       }
+                        @SuppressWarnings("unchecked")
+                        List<Annotation> list = (List<Annotation>) ann.getNamedParameter("specs");
+                        for (Annotation a : list) {
+                            processSpecAnnotation(a, patternMap, instanceMap);
+                        }
                     } else if (ann.getType().getFullyQualifiedName().equals(PATTERN_SPEC_ANN_FQN)) {
                         processSpecAnnotation(ann, patternMap, instanceMap);
                     }
@@ -199,19 +209,20 @@ public class CrossWeaveMojo extends AbstractMojo {
         }
     }
 
-    public static void reportPatternErrors(Map<String, PatternInstance> instanceMap, FileWriter out)
+    public static void reportPatternErrors(Map<String, PatternInstance> instanceMap,
+            FileWriter out, STGroup template)
             throws IOException {
         boolean errorFound = false;
         for (String alias : instanceMap.keySet()) {
             PatternInstance pat = instanceMap.get(alias);
             if (pat.hasEmptyRoles()) {
                 errorFound = true;
-                String fullyQualifiedName = pat.getFullyQualifiedName();
-                out.write("Pattern " + fullyQualifiedName + " has empty roles:\n");
+                ST st = template.getInstanceOf("error");
+                st.add("fqn", pat.getFullyQualifiedName());
                 for (Role role : pat.getEmptyRoles()) {
-                    out.write("\t" + role.getName() + "\n");
+                    st.add("emptyRole", role);
                 }
-                out.write("\n");
+                out.write(st.render());
             } else {
                 logger.info("PatternInstance " + pat.getFullyQualifiedName()
                         + " has all roles filled");
@@ -224,7 +235,8 @@ public class CrossWeaveMojo extends AbstractMojo {
         }
 
         if (!errorFound) {
-            out.write("No pattern errors found\n");
+//            ST st = template.getInstanceOf("noError");
+//            out.write(st.render());
         }
 
     }
@@ -234,29 +246,28 @@ public class CrossWeaveMojo extends AbstractMojo {
      * @param out
      * @throws IOException
      */
-    public static void printStats(Map<String, PatternInstance> instanceMap, FileWriter out/*
-                                                                                           * ,
-                                                                                           * STGroup
-                                                                                           * template
-                                                                                           */)
-            throws IOException {
-        // template.
+    public static void printStats(Map<String, PatternInstance> instanceMap, FileWriter out,
+            STGroup template) throws IOException {
         out.write("Summary of pattern structure:\n");
         for (String alias : instanceMap.keySet()) {
+            ST stPatternDesc = template.getInstanceOf("patDesc");
             PatternInstance pat = instanceMap.get(alias);
-            out.write("Pattern: " + pat.getFullyQualifiedName() + " (alias " + alias + ")\n");
+            stPatternDesc.add("fqn", pat.getFullyQualifiedName());
+            stPatternDesc.add("patName", pat.getPattern().getName());
+            stPatternDesc.add("alias", alias);
+            out.write(stPatternDesc.render());
             Collection<Role> roles = pat.getRoles();
             for (Role role : roles) {
-                out.write("\tRole: " + role.getName() + "\n");
+                ST stRoleDesc = template.getInstanceOf("roleDesc");
+                stRoleDesc.add("roleName", role.getName());
                 if (role.hasNoImplementers()) {
-                    out.write("\t\tNo implementers\n");
                 } else {
                     for (String implementer : role.getImplementers()) {
-                        out.write("\t\tImplementer: " + implementer + "\n");
+                        stRoleDesc.add("implementer", implementer);
                     }
                 }
+                out.write(stRoleDesc.render());
             }
-            out.write('\n');
         }
     }
 
@@ -275,7 +286,7 @@ public class CrossWeaveMojo extends AbstractMojo {
             return trimQuotes(param);
         }
     }
-    
+
     private static final void processSpecAnnotation(
             Annotation ann,
             Map<String, Pattern> patternMap,
@@ -303,7 +314,7 @@ public class CrossWeaveMojo extends AbstractMojo {
         logger.info("Pattern " + pattern.getFullyQualifiedName()
                 + " instantiated to " + instanceName + " with alias " + alias);
     }
-    
+
     private static final void processRoleAnnotation(
             Annotation ann,
             Map<String, PatternInstance> instanceMap,
