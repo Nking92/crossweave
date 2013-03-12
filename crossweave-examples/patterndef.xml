@@ -1,6 +1,8 @@
 <pattern name="adapter" namespace="gof">
+  <!-- make roles children of implementations an option -->
   <impl name="foo" />
   <impl name="bar" />
+  <!-- description tag (optional) -->
   <role name="client" />
   <role name="adapter" />
   <role name="adaptee" />

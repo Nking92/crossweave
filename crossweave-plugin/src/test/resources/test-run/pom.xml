@@ -11,7 +11,7 @@
         <configuration>
           <!-- Parameters for the plugin -->
           <source>${basedir}/../crossweave-examples</source>
-          <template>${basedir}/../crossweave-examples/template.stg</template>
+          <template>${basedir}/../crossweave-examples/error_template.stg</template>
           <outputDir>${basedir}/src/test/resources/output</outputDir>
           <patternDef>${basedir}/../crossweave-examples/patterndef.xml</patternDef>
         </configuration>

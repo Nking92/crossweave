@@ -213,6 +213,11 @@ public class CrossWeaveMojo extends AbstractMojo {
             FileWriter out, STGroup template)
             throws IOException {
         boolean errorFound = false;
+        ST st = template.getInstanceOf("reportPatternErrors");
+        logger.info("owidfj " + st.getName());
+        st.add("instanceSet", instanceMap.values());
+        out.write(st.render());
+        /*
         for (String alias : instanceMap.keySet()) {
             PatternInstance pat = instanceMap.get(alias);
             if (pat.hasEmptyRoles()) {
@@ -232,12 +237,14 @@ public class CrossWeaveMojo extends AbstractMojo {
                             + role.getImplementers().toString());
                 }
             }
-        }
+        } */
 
         if (!errorFound) {
 //            ST st = template.getInstanceOf("noError");
 //            out.write(st.render());
         }
+        
+        out.write("\n");
 
     }
 
@@ -248,7 +255,6 @@ public class CrossWeaveMojo extends AbstractMojo {
      */
     public static void printStats(Map<String, PatternInstance> instanceMap, FileWriter out,
             STGroup template) throws IOException {
-        out.write("Summary of pattern structure:\n");
         for (String alias : instanceMap.keySet()) {
             ST stPatternDesc = template.getInstanceOf("patDesc");
             PatternInstance pat = instanceMap.get(alias);

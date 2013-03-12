@@ -1,0 +1,3 @@
+error(fqn, emptyRole) ::= "Pattern <fqn> has empty roles:<\n><emptyRole><\n>"
+patDesc(fqn, patName, alias) ::= "Pattern: <fqn> (alias <alias>)<\n>"
+roleDesc(roleName, implementer) ::= "<\t>Implementers for role <roleName>: <implementer><\n><\n>"
