@@ -97,7 +97,7 @@ public class PatternInstance {
      * @return true if this PatternInstance has roles that have not been filled,
      *         false otherwise
      */
-    public boolean hasEmptyRoles() {
+    public boolean isUnfilled() {
         for (Role role : mRoles) {
             if (role.hasNoImplementers())
                 return true;

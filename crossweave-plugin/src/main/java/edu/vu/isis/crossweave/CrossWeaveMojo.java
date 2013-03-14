@@ -157,8 +157,10 @@ public class CrossWeaveMojo extends AbstractMojo {
             fw = new FileWriter(file);
 
             STGroup stg = new STGroupFile(template);
-            reportPatternErrors(instanceMap, fw, stg);
-            printStats(instanceMap, fw, stg);
+            ST st = stg.getInstanceOf("reportPatternDescriptions");
+            st.add("patterns", instanceMap.values());
+            fw.write(st.render());
+            fw.flush();
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to write output", e);
         } finally {
@@ -205,74 +207,6 @@ public class CrossWeaveMojo extends AbstractMojo {
                         processRoleAnnotation(ann, instanceMap, clazz);
                     }
                 }
-            }
-        }
-    }
-
-    public static void reportPatternErrors(Map<String, PatternInstance> instanceMap,
-            FileWriter out, STGroup template)
-            throws IOException {
-        boolean errorFound = false;
-        ST st = template.getInstanceOf("reportPatternErrors");
-        logger.info("owidfj " + st.getName());
-        st.add("instanceSet", instanceMap.values());
-        out.write(st.render());
-        /*
-        for (String alias : instanceMap.keySet()) {
-            PatternInstance pat = instanceMap.get(alias);
-            if (pat.hasEmptyRoles()) {
-                errorFound = true;
-                ST st = template.getInstanceOf("error");
-                st.add("fqn", pat.getFullyQualifiedName());
-                for (Role role : pat.getEmptyRoles()) {
-                    st.add("emptyRole", role);
-                }
-                out.write(st.render());
-            } else {
-                logger.info("PatternInstance " + pat.getFullyQualifiedName()
-                        + " has all roles filled");
-                logger.info("Implementers: ");
-                for (Role role : pat.getRoles()) {
-                    logger.info("\tRole " + role.getName() + ": "
-                            + role.getImplementers().toString());
-                }
-            }
-        } */
-
-        if (!errorFound) {
-//            ST st = template.getInstanceOf("noError");
-//            out.write(st.render());
-        }
-        
-        out.write("\n");
-
-    }
-
-    /**
-     * @param instanceMap
-     * @param out
-     * @throws IOException
-     */
-    public static void printStats(Map<String, PatternInstance> instanceMap, FileWriter out,
-            STGroup template) throws IOException {
-        for (String alias : instanceMap.keySet()) {
-            ST stPatternDesc = template.getInstanceOf("patDesc");
-            PatternInstance pat = instanceMap.get(alias);
-            stPatternDesc.add("fqn", pat.getFullyQualifiedName());
-            stPatternDesc.add("patName", pat.getPattern().getName());
-            stPatternDesc.add("alias", alias);
-            out.write(stPatternDesc.render());
-            Collection<Role> roles = pat.getRoles();
-            for (Role role : roles) {
-                ST stRoleDesc = template.getInstanceOf("roleDesc");
-                stRoleDesc.add("roleName", role.getName());
-                if (role.hasNoImplementers()) {
-                } else {
-                    for (String implementer : role.getImplementers()) {
-                        stRoleDesc.add("implementer", implementer);
-                    }
-                }
-                out.write(stRoleDesc.render());
             }
         }
     }

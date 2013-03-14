@@ -1,0 +1,17 @@
+showAllErrors(pattern) ::= <<
+<if(pattern.unfilled)>
+Empty roles:
+<pattern.emptyRoles: {role | <role><\n>}>
+<else>
+No empty roles<\n>
+<endif>
+>>
+
+reportPatternDescriptions(patterns) ::= <<
+<patterns: {pattern | Report for pattern <pattern.fullyQualifiedName>:
+<showAllErrors(pattern)><printRoleImplementers(pattern)><\n>}>
+>>
+
+printRoleImplementers(pattern) ::= <<
+<pattern.roles: {role | Implementers for role <role.name>: <role.implementers><\n>}>
+>>
