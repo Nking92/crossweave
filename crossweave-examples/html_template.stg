@@ -1,0 +1,30 @@
+delimiters "$", "$"
+
+reportPatternDescriptions(patterns) ::= <<
+<html>
+  <body>
+    <title>Crossweave Report</title>
+    $patterns:patternReport()$
+  </body>
+</html>
+>>
+
+patternReport(pattern) ::= <<
+<p>
+<h1>Report for pattern $pattern.fullyQualifiedName$:</h1>
+$showAllErrors(pattern)$$printRoleImplementers(pattern)$<br/>$\n$
+</p>
+>>
+
+showAllErrors(pattern) ::= <<
+$if(pattern.unfilled)$
+Empty roles:
+$pattern.emptyRoles: {role | $role$<br/>$\n$}$
+$else$
+No empty roles<br/>$\n$
+$endif$
+>>
+
+printRoleImplementers(pattern) ::= <<
+$pattern.roles: {role | Implementers for role $role.name$: $role.implementers$<br/>$\n$}$
+>>
