@@ -4,7 +4,7 @@ reportPatternDescriptions(patterns) ::= <<
 <html>
   <body>
     <title>Crossweave Report</title>
-    $patterns:patternReport()$
+    $patterns:patternReport(); separator="\n"$
   </body>
 </html>
 >>
@@ -12,19 +12,19 @@ reportPatternDescriptions(patterns) ::= <<
 patternReport(pattern) ::= <<
 <p>
 <h1>Report for pattern $pattern.fullyQualifiedName$:</h1>
-$showAllErrors(pattern)$$printRoleImplementers(pattern)$<br/>$\n$
+$showAllErrors(pattern)$$printRoleImplementers(pattern)$<br/>
 </p>
 >>
 
 showAllErrors(pattern) ::= <<
 $if(pattern.unfilled)$
 Empty roles:
-$pattern.emptyRoles: {role | $role$<br/>$\n$}$
+$pattern.emptyRoles: {role | $role$}; separator="<br/>\n"$
 $else$
-No empty roles<br/>$\n$
+No empty roles<br/>
 $endif$
 >>
 
 printRoleImplementers(pattern) ::= <<
-$pattern.roles: {role | Implementers for role $role.name$: $role.implementers$<br/>$\n$}$
+$pattern.roles: {role | Implementers for role $role.name$: $role.implementers$}; separator="<br/>\n"$
 >>
